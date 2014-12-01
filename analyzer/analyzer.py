@@ -231,5 +231,5 @@ if len(sys.argv)>=2:
 else:
 	print("At least one argument is needed: The name of the server log file.")
 
-entitylist.sort()
+#entitylist.sort(key=lambda x: x.dmgdone, reverse=True)
 print("You gained "+str(youentity.expgot)+" experience points.")
