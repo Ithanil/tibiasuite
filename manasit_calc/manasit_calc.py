@@ -190,11 +190,9 @@ def create_potion(type, cost, cd, resting_area = False):
 
     if (resting_area == True):
         for key in potsmap:
-            potsmap[key][0] *= 0.5 # atm we apply resting area boni to all regen_item, but ingame pots are not affected ingame
+            potsmap[key][0] *= 0.5 # atm we apply resting area boni to all regen_item, but ingame pots are not affected
             potsmap[key][1] *= 0.5
 
-    print(potsmap[type][0])
-    print(potsmap[type][1])
     return regen_item(label = type, hps = potsmap[type][0] / cd, mps = potsmap[type][1] / cd, cost = cost, duration = cd)
 
 mushrooms = create_foodregen(1000/(7*60+20)*20, "Sorcerer", True)
@@ -209,9 +207,10 @@ lifering = create_lifering(300)
 lifering.report()
 print()
 
-manapots = create_potion("Mana Potion", 50, 1, True)
+manapots = create_potion("Mana Potion", 45, 1, False)
 manapots.report()
 print()
+manapots = create_potion("Mana Potion", 45, 1, True)
 
 item_list = regen_item_list([mushrooms, softboots, lifering], True)
 #item_list = regen_item_list([mushrooms, softboots, lifering, manapots], True)
