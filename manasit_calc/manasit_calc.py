@@ -34,6 +34,9 @@ class regen_item:
 
         self.__update_costphms()
 
+    def set_label(self, label):
+        self.__label = label
+
     def set_hps(self, hps):
         self.__hps = hps
         self.__update_costph()
@@ -49,6 +52,9 @@ class regen_item:
     def set_duration(self, duration):
         self.__duration = duration
         self.__update_costphms()
+
+    def get_label(self):
+        return self.__label
 
     def get_hps(self):
         return self.__hps
@@ -87,7 +93,7 @@ class regen_item:
         return self.__cost / self.__duration
 
     def report(self):
-        print("Regen report for " +  self.__label)
+        print("Regen report for " +  self.__label + ":")
         print("hps: " + str(self.__hps))
         print("mps: " + str(self.__mps))
         print("cost: " + str(self.__cost))
@@ -96,10 +102,11 @@ class regen_item:
         print("cost per mp: " + str(self.__costpm))
         print("cost per second: " + str(self.__costps))
 
+
 class regen_item_list:
     def __init__(self, item_list, resting_area = False):
         self.set_resting_area(resting_area)
-        self.set_list(item_list)
+        self.set_items(item_list)
 
     def set_resting_area(self, resting_area):
         if (resting_area == True):
@@ -107,7 +114,7 @@ class regen_item_list:
         else:
             self.__rafac = 1.0
     
-    def set_list(self, item_list):
+    def set_items(self, item_list):
         self.__items = []
         self.__hps = 0.
         self.__mps = 0.
@@ -128,8 +135,8 @@ class regen_item_list:
     def get_rafac(self):
         return self.__rafac
 
-    def get_item_list(self):
-        return self.__item_list
+    def get_items(self):
+        return self.__items
 
     def get_hps(self):
         return self.__hps
@@ -160,6 +167,9 @@ def create_softboots():
 
 def create_lifering(cost):
     return regen_item(label = "life ring", hps = 1./3., mps = 4./3. , cost = cost, duration = 20*60)
+
+def create_ringofhealing(cost):
+    return regen_item(label = "ring of healing", hps = 1., mps = 4., cost = cost, duration = 450)
 
 def create_foodregen_knight(cost, promoted):
     if (promoted == True): return regen_item(label = "Elite Knight Regen", hps = 0.25, mps = 1./3., cost = cost, duration = 20*60)
@@ -195,6 +205,82 @@ def create_potion(type, cost, cd, resting_area = False):
 
     return regen_item(label = type, hps = potsmap[type][0] / cd, mps = potsmap[type][1] / cd, cost = cost, duration = cd)
 
+
+class rune:
+    def __init__(self, label, mp, sp, nout, price):
+        self.label = label
+        self.mp = mp
+        self.sp = sp
+        self.nout = nout
+        self.price = price
+
+    def report(self):
+        print("Rune report for " + self.label + ":")
+        print("Mana points per cast: " + str(self.mp))
+        print("Soul points per cast: " + str(self.sp))
+        print("Produced runes per cast: " + str(self.nout))
+        print("Market price per rune: " + str(self.price))
+        print()
+
+
+def create_rune_gfb(price):
+    return rune("Great Fireball", 530, 3, 4, price)
+
+def create_rune_sd(price):
+    return rune("Sudden Death", 985, 5, 3, price)
+
+
+def analyze_manasit(rune, regen_items, blank_rune_price):
+
+    cast_ps = regen_items.get_mps() / rune.mp
+    sp_ps = rune.sp * cast_ps
+    nout_ps = rune.nout * cast_ps
+    profit_ps = rune.price * nout_ps - blank_rune_price * cast_ps - regen_items.get_costps()
+
+    num_items = len(regen_items.get_items())
+    item_string = ""
+    for num, item in enumerate(regen_items.get_items()):
+        if (num+1 < num_items): item_string += item.get_label() + ", "
+        else:
+            if (num > 1):
+                item_string = item_string[:-1] + " and " + item.get_label()
+            else:
+                item_string = item.get_label()
+
+    print("Manasit analysis for creating " + rune.label + " runes using...")
+    print(item_string + ":")
+    print()
+    print("Casts per second: " + str(cast_ps))
+    print("Soul points per second: " + str(sp_ps))
+    print("Runes per second: " + str(nout_ps))
+    print("Profit per second: " + str(profit_ps))
+    print("Mana used per second: " + str(regen_items.get_mps()))
+    print()
+    print("Casts per minute: " + str(cast_ps*60))
+    print("Soul points per minute: " + str(sp_ps*60))
+    print("Runes per minute: " + str(nout_ps*60))
+    print("Profit per minute: " + str(profit_ps*60))
+    print("Mana used per minute: " + str(regen_items.get_mps()*60))
+    print()
+    print("Casts per hour: " + str(cast_ps*3600))
+    print("Soul points per hour: " + str(sp_ps*3600))
+    print("Runes per hour: " + str(nout_ps*3600))
+    print("Profit per hour: " + str(profit_ps*3600))
+    print("Mana used per hour: " + str(regen_items.get_mps()*3600))
+    print()
+
+def calculate_profit_rate(rune, mana_ps, cost_ps, blank_rune_price):
+    cast_ps = mana_ps / rune.mp
+    nout_ps = rune.nout * cast_ps
+    profit_ps = rune.price * nout_ps - blank_rune_price * cast_ps - cost_ps
+
+    return profit_ps
+
+
+#---------------------------------------------------------------------------#
+#                             SCRIPT PART                                   #
+#---------------------------------------------------------------------------#
+
 mushrooms = create_foodregen(1000/(7*60+20)*20, "Sorcerer", True)
 mushrooms.report()
 print()
@@ -207,39 +293,35 @@ lifering = create_lifering(300)
 lifering.report()
 print()
 
+ringofhealing = create_ringofhealing(1100)
+ringofhealing.report()
+print()
+
 manapots = create_potion("Mana Potion", 45, 1, False)
 manapots.report()
 print()
 manapots = create_potion("Mana Potion", 45, 1, True)
 
-item_list = regen_item_list([mushrooms, softboots, lifering], True)
-#item_list = regen_item_list([mushrooms, softboots, lifering, manapots], True)
-#item_list = regen_item_list([mushrooms], True)
+item_list_softlife = regen_item_list([mushrooms, softboots, lifering], True)
+item_list_softroh = regen_item_list([mushrooms, softboots, ringofhealing], True)
+item_list_fullpots = regen_item_list([mushrooms, softboots, ringofhealing, manapots], True)
+item_list_potsonly = regen_item_list([manapots], False)
+item_list_foodonly = regen_item_list([mushrooms], True)
 
-gfb_mp = 530
-gfb_sp = 3
-gfb_out = 4
-gfb_price = 44
+blank_rune_price = 10
 
-gfb_ps = item_list.get_mps() / gfb_mp
-gfb_sp_ps = gfb_sp * gfb_ps
-gfb_out_ps = gfb_out * gfb_ps
-gfb_gold_ps = gfb_price * gfb_out_ps - item_list.get_costps() 
+gfb_rune = create_rune_gfb(45)
+gfb_rune.report()
+sd_rune = create_rune_sd(108)
+sd_rune.report()
 
-print("GFB casts per second: " + str(gfb_ps))
-print("GFB soul points per second: " + str(gfb_sp_ps))
-print("GFB runes per second: " + str(gfb_out_ps))
-print("GFB gold per second: " + str(gfb_gold_ps))
-print("Mana used per second: " + str(item_list.get_mps()))
+analyze_manasit(gfb_rune, item_list_foodonly, blank_rune_price)
+analyze_manasit(gfb_rune, item_list_softlife, blank_rune_price)
+analyze_manasit(gfb_rune, item_list_softroh, blank_rune_price)
+analyze_manasit(gfb_rune, item_list_potsonly, blank_rune_price)
+
 print()
-print("GFB casts per minute: " + str(gfb_ps*60))
-print("GFB soul points per minute: " + str(gfb_sp_ps*60))
-print("GFB runes per minute: " + str(gfb_out_ps*60))
-print("GFB gold per minte: " + str(gfb_gold_ps*60))
-print("Mana used per minute: " + str(item_list.get_mps()*60))
 print()
-print("GFB casts per hour: " + str(gfb_ps*3600))
-print("GFB soul points per hour: " + str(gfb_sp_ps*3600))
-print("GFB runes per hour: " + str(gfb_out_ps*3600))
-print("GFB gold per hour: " + str(gfb_gold_ps*3600))
-print("Mana used per hour: " + str(item_list.get_mps()*3600))
+
+analyze_manasit(gfb_rune, item_list_softroh, blank_rune_price)
+analyze_manasit(sd_rune, item_list_softroh, blank_rune_price)
