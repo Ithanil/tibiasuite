@@ -195,6 +195,9 @@ def create_foodregen(cost, vocation, promoted):
 def create_potion(type, cost, cd, resting_area = False):
     potsmap = {
                 "Mana Potion" : [0, 100],
+                "Strong Mana Potion" : [0, 150],
+                "Great Mana Potion" : [0, 200],
+                "Ultimate Mana Potion" : [0, 500],
                 "Health Potion" : [100, 0]
               }
 
@@ -289,23 +292,23 @@ softboots = create_softboots()
 softboots.report()
 print()
 
-lifering = create_lifering(300)
+lifering = create_lifering(350)
 lifering.report()
 print()
 
-ringofhealing = create_ringofhealing(1100)
+ringofhealing = create_ringofhealing(1200)
 ringofhealing.report()
 print()
 
-manapots = create_potion("Mana Potion", 45, 1, False)
+manapots = create_potion("Great Mana Potion", 95, 1, False)
 manapots.report()
 print()
-manapots = create_potion("Mana Potion", 45, 1, True)
+manapots = create_potion("Great Mana Potion", 95, 1, True)
 
 item_list_softlife = regen_item_list([mushrooms, softboots, lifering], True)
 item_list_softroh = regen_item_list([mushrooms, softboots, ringofhealing], True)
 item_list_fullpots = regen_item_list([mushrooms, softboots, ringofhealing, manapots], True)
-item_list_potsonly = regen_item_list([manapots], False)
+item_list_potsonly = regen_item_list([manapots], True)
 item_list_foodonly = regen_item_list([mushrooms], True)
 
 blank_rune_price = 10
@@ -319,6 +322,7 @@ analyze_manasit(gfb_rune, item_list_foodonly, blank_rune_price)
 analyze_manasit(gfb_rune, item_list_softlife, blank_rune_price)
 analyze_manasit(gfb_rune, item_list_softroh, blank_rune_price)
 analyze_manasit(gfb_rune, item_list_potsonly, blank_rune_price)
+analyze_manasit(gfb_rune, item_list_fullpots, blank_rune_price)
 
 print()
 print()
